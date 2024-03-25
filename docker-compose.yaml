@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  app:
+    container_name: encryption-script
+    image: encryption-script:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: "host"
+    restart: unless-stopped
