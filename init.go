@@ -19,7 +19,10 @@ func RunApplication() {
 
 	iRSAEncryptionUsecase := usecase.NewRSAEncryptionUsecase()
 	iRSAEncryptionRouter := router.NewRSAEncryptionRouter(iRSAEncryptionUsecase)
-	iEncryptionHttpHandler := handler.NewEncryptionHttpHandler(fiberRouter, iRSAEncryptionRouter)
+	iHMACAESUsecase := usecase.NewHMACAESUsecase()
+	iHMACAESRouter := router.NewHMACAESRouter(iHMACAESUsecase)
+	iEncryptionHttpHandler := handler.NewEncryptionHttpHandler(fiberRouter, iRSAEncryptionRouter,
+		iHMACAESRouter)
 	iEncryptionHttpHandler.Routers()
 
 	// setup server

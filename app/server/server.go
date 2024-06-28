@@ -57,7 +57,5 @@ func (s *SetupServer) InitServer() {
 		return ctx.JSON(fiber.Map{"message": "Hello, Welcome to My API!"})
 	})
 	svcPort := s.svcProperties.ServicePort
-	fmt.Printf("Listening on port : %d\n", svcPort)
-	fmt.Printf("Ready to serve\n")
 	s.fiberApp.Listen(fmt.Sprintf(":%d", svcPort))
 }
