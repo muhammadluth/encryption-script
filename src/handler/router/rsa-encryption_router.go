@@ -39,3 +39,23 @@ func (r *RSAEncryptionRouter) DoRSAEncryptionSHA256(ctx *fiber.Ctx) error {
 	response := r.iRSAEncryptionUsecase.DoRSAEncryptionSHA256(traceId, message)
 	return ctx.Status(response.Status).JSON(response.Body)
 }
+
+func (r *RSAEncryptionRouter) DoRSAEncryptionMD5(ctx *fiber.Ctx) error {
+	traceId, _ := ctx.Locals(constant.LOCALS_TRACE_ID).(string)
+
+	// Body Parser
+	request := new(model.RequestRSAEncryption)
+	if err := ctx.BodyParser(request); err != nil {
+		response := model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
+		return ctx.Status(response.Status).JSON(response.Body)
+	}
+	requestAsByteJSON, _ := json.Marshal(request)
+
+	message, err := utils.GenerateMessage(traceId, ctx, nil, nil, nil, requestAsByteJSON)
+	if err != nil {
+		response := model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
+		return ctx.Status(response.Status).JSON(response.Body)
+	}
+	response := r.iRSAEncryptionUsecase.DoRSAEncryptionMD5(traceId, message)
+	return ctx.Status(response.Status).JSON(response.Body)
+}
