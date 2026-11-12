@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -30,9 +31,19 @@ func (u *RSAEncryptionUsecase) DoRSAEncryptionSHA256(traceId string, message mod
 		return model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
 	}
 
-	_, privateKey, err := utils.GetRSAKey([]byte(request.PublicKey), []byte(request.PrivateKey))
+	var privateKey *rsa.PrivateKey
+	if request.SecretKeyFilename != "" {
+		_, privateKey, err = utils.GetRSAKeyFromFile(request.SecretKeyFilename, request.SecretKeyPassword)
+	} else if request.PrivateKey != "" {
+		_, privateKey, err = utils.GetRSAKey([]byte(request.PublicKey), []byte(request.PrivateKey))
+	}
+
 	if err != nil {
 		return model.FResponseDefault(http.StatusBadRequest, utils.ToTitleCase(err.Error()))
+	} else if privateKey == nil {
+		return model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
+	} else if err := privateKey.Validate(); err != nil {
+		return model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
 	}
 
 	hashed := sha256.Sum256([]byte(request.Message))
@@ -58,12 +69,22 @@ func (u *RSAEncryptionUsecase) DoRSAEncryptionSHA512(traceId string, message mod
 		return model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
 	}
 
-	_, privateKey, err := utils.GetRSAKey([]byte(request.PublicKey), []byte(request.PrivateKey))
-	if err != nil {
-		return model.FResponseDefault(http.StatusBadRequest, utils.ToTitleCase(err.Error()))
+	var privateKey *rsa.PrivateKey
+	if request.SecretKeyFilename != "" {
+		_, privateKey, err = utils.GetRSAKeyFromFile(request.SecretKeyFilename, request.SecretKeyPassword)
+	} else if request.PrivateKey != "" {
+		_, privateKey, err = utils.GetRSAKey([]byte(request.PublicKey), []byte(request.PrivateKey))
 	}
 
-	hashed := sha256.Sum256([]byte(request.Message))
+	if err != nil {
+		return model.FResponseDefault(http.StatusBadRequest, utils.ToTitleCase(err.Error()))
+	} else if privateKey == nil {
+		return model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
+	} else if err := privateKey.Validate(); err != nil {
+		return model.FResponseDefault(http.StatusBadRequest, "Invalid Request")
+	}
+
+	hashed := sha512.Sum512([]byte(request.Message))
 	dataInBytes, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA512, hashed[:])
 	if err != nil {
 		return model.FResponseDefault(http.StatusInternalServerError, "Server Error")

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -48,6 +49,40 @@ func GetRSAKeyFromFile(secretKeyFilename, secretKeyPassword string) (publicKey *
 	readFile, err := os.ReadFile(secretKeyFilename)
 	if err != nil {
 		panic(err)
+	}
+
+	if strings.HasSuffix(secretKeyFilename, ".pem") {
+		privateKeyPEM, err := os.ReadFile(secretKeyFilename)
+		if err != nil {
+			panic(fmt.Errorf("read BANK_MANDIRI_PRIVATE_KEY_PATH: %w", err))
+		}
+		block, rest := pem.Decode(privateKeyPEM)
+		if block == nil || len(bytes.TrimSpace(rest)) != 0 {
+			panic(fmt.Errorf("expected one PEM-encoded RSA private key"))
+		}
+		switch block.Type {
+		case "PRIVATE KEY":
+			parsed, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+			if err != nil {
+				panic(fmt.Errorf("parse PKCS#8 private key: %w", err))
+			}
+			var ok bool
+			privateKey, ok = parsed.(*rsa.PrivateKey)
+			if !ok {
+				panic(fmt.Errorf("private key must be RSA"))
+			}
+		case "RSA PRIVATE KEY":
+			privateKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+			if err != nil {
+				panic(fmt.Errorf("parse PKCS#1 private key: %w", err))
+			}
+		default:
+			panic(fmt.Errorf("unsupported private key PEM type: %s", block.Type))
+		}
+		if err := privateKey.Validate(); err != nil {
+			panic(fmt.Errorf("invalid RSA private key: %w", err))
+		}
+		return &privateKey.PublicKey, privateKey, nil
 	}
 
 	block, err := pkcs12.ToPEM(readFile, secretKeyPassword)
