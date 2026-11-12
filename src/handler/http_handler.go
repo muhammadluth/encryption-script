@@ -21,6 +21,7 @@ func NewEncryptionHttpHandler(fiberRouter fiber.Router, iRSAEncryptionRouter IRS
 
 func (h *EncryptionHttpHandler) Routers() {
 	h.fiberRouter.Post("/rsa-encryption/sha-256", h.iRSAEncryptionRouter.DoRSAEncryptionSHA256)
+	h.fiberRouter.Post("/rsa-encryption/sha-512", h.iRSAEncryptionRouter.DoRSAEncryptionSHA512)
 	h.fiberRouter.Post("/rsa-encryption/md5", h.iRSAEncryptionRouter.DoRSAEncryptionMD5)
 
 	h.fiberRouter.Post("/hmac-encryption/aes", h.iHMACAESRouter.DoHMACEncryptionAES)

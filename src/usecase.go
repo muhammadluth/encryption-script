@@ -7,6 +7,7 @@ import (
 
 type IRSAEncryptionUsecase interface {
 	DoRSAEncryptionSHA256(traceId string, message model.Message) model.Response
+	DoRSAEncryptionSHA512(traceId string, message model.Message) model.Response
 	DoRSAEncryptionMD5(traceId string, message model.Message) model.Response
 }
 
